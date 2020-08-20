@@ -15,6 +15,7 @@ model document {
   sample_blog_text    String
   title               String
   user_id             Int      @unique
+  worker_job_id       Int      @unique
   user                user     @relation(fields: [user_id], references: [id])
 }
 
