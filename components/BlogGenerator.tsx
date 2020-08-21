@@ -88,8 +88,12 @@ const BlogGenerator: React.FC = () => {
 			exampleBlogText,
 			exampleBlogTitleText
 		}).then(res => {
-			setWorkerJobId(res.data.createDocument.worker_job_id)
-			setShouldDelayFetchDocument(true)
+			if (res && res.data) {
+				setWorkerJobId(res.data.createDocument.worker_job_id)
+				setShouldDelayFetchDocument(true)
+			} else {
+				console.log("ress", res.error.message)
+			}
 		})
 	}
 
@@ -100,6 +104,9 @@ const BlogGenerator: React.FC = () => {
 		return len1 + len2 + len3 -3
 	}
 
+	if (documentResult.error && documentResult.error.message) {
+		console.log('documentResult.error.message', documentResult.error.message)
+	}
   return (
 		<div style={{padding: '0 5vw 0 5vw'}}>
       <div style={{display: 'flex', justifyContent: 'space-between'}}>

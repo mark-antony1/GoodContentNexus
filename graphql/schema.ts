@@ -234,7 +234,7 @@ schema.mutationType({
 							}
 						},
 						worker_job_id: job_id,
-						generated_blog_text: ""
+						generated_blog_text: "Generating Blog Content please wait..."
 					},
 				});
     	}
