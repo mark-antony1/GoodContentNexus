@@ -22,6 +22,7 @@ const CreateDocument = gql`
 		createDocument(title: $title, example_blog_text: $exampleBlogText, example_title: $exampleBlogTitleText) {
 			id
 			worker_job_id
+			generated_blog_text
     }
 	}`
 ;
@@ -29,6 +30,15 @@ const CreateDocument = gql`
 const Document = gql`
 	query($workerJobId: String!) {
 		document(worker_job_id: $workerJobId) {
+			id
+			generated_blog_text
+    }
+	}`
+;
+
+const FetchOrUpdateBlog = gql`
+	mutation($workerJobId: String!) {
+		fetchOrUpdateBlog(worker_job_id: $workerJobId) {
 			id
 			generated_blog_text
     }
@@ -54,6 +64,7 @@ const BlogGenerator: React.FC = () => {
 	const [shouldDelayFetchDocument, setShouldDelayFetchDocument] = useState(false)
 
 	const [createDocumentResult, createDocument] = useMutation(CreateDocument);
+	const [fetchOrUpdateBlogResult, fetchOrUpdateBlog] = useMutation(FetchOrUpdateBlog);
 
 	if (typeof window !== 'undefined') {
 		const router = useRouter()
@@ -75,8 +86,17 @@ const BlogGenerator: React.FC = () => {
 	if(shouldDelayFetchDocument) {
 		setShouldDelayFetchDocument(false)
 		setTimeout(function(){
-			document()
-			setIsLoadingBlog(false)
+		fetchOrUpdateBlog({
+			workerJobId
+		}).then(res => {
+			if (res && res.data) {
+				console.log('res', res.data)
+				setGeneratedBlogText(res.data.fetchOrUpdateBlog.generated_blog_text)
+				setIsLoadingBlog(false)
+			} else {
+				console.log("fetchOrUpdateBlog ress", res.error.message)
+			}
+		})
 		},120000)
 
 	}
@@ -90,9 +110,10 @@ const BlogGenerator: React.FC = () => {
 		}).then(res => {
 			if (res && res.data) {
 				setWorkerJobId(res.data.createDocument.worker_job_id)
+				setGeneratedBlogText(res.data.createDocument.generated_blog_text)
 				setShouldDelayFetchDocument(true)
 			} else {
-				console.log("ress", res.error.message)
+				console.log("createDocument ress", res.error.message)
 			}
 		})
 	}
@@ -137,17 +158,17 @@ const BlogGenerator: React.FC = () => {
 					<TitleWithTooltip titleText='Blog Output' tooltipText='this is the generated text for the blog you are creating'/>
 					<textarea 
 						disabled
-						value={documentResult && documentResult.data && documentResult.data.document && documentResult.data.document.generated_blog_text} 
-						onChange={(e) => setGeneratedBlogText(e.target.value)} 
+						value={generatedBlogText} 
 						style={{width: '45vw', height: '60vh'}}
 					/>
+					{documentResult.error && documentResult.error.message ? <div style={{color: "red"}}>There was an error generating this blog post</div> : ""}
         </div>
       </div>
       <div style={{display: 'flex', justifyContent: 'space-between'}}>
         <div>
           <div>{getNumOfWords()}/900</div>
 					<Button style={{minWidth: '120px', minHeight: "39px"}} onClick={generateBlog} disableElevation variant="contained" color="primary">
-						{isLoadingBlog ? <CircularProgress color="secondary" size='26px'/> :"Generate"}
+						{isLoadingBlog ? <CircularProgress color="inherit" size='26px'/> :"Generate"}
 					</Button>
         </div>
 				<BlogLikeButtons/>

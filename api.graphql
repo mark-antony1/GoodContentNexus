@@ -27,6 +27,7 @@ scalar Json
 
 type Mutation {
   createDocument(example_blog_text: String!, example_title: String!, title: String!): document
+  fetchOrUpdateBlog(worker_job_id: String!): document
   login(email: String!, password: String!): user
   signup(email: String!, first_name: String!, inviteCode: String!, last_name: String!, password: String!): user
   updateDocument(document_id: Int!, generated_blog_text: String!): document
