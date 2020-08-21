@@ -34,14 +34,19 @@ const LoginPage = () => {
 		login(formFields)
 		.then(res => {
 			if (res.error && res.error.message){
+				console.log("res.errror", res.error.message)
 				const message = res.error.message
 				if (message.includes("Invalid email and passwo")){
 					setErrorText("Invalid email and password combination")
 				} else if (message.includes("ique constraint failed on the fields: (`email")){
 					setErrorText("That email has already been used")
+				} else if (message.includes("variable not found: DATABASE_URL")) {
+					setErrorText("Problem connecting to Database")
+				} else if (message.includes("secretOrPrivateKey must have a value")) {
+					setErrorText("Missing Server Side Variables")
 				} else {
 					setErrorText("An error has occured please try again later")
-				}
+				} 
 			} else {
 				router.push('/')
 			}
