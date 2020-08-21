@@ -6,7 +6,7 @@ import "../styles/global.css"
 import "../public/static/style.css"
 
 // the URL to /api/graphql
-const GRAPHQL_ENDPOINT = `http://localhost:3000/api/graphql`;
+const GRAPHQL_ENDPOINT = `/api/graphql`;
 
 const App = ({ Component, pageProps }: AppProps) => {
   return <Component {...pageProps} />;
