@@ -62,6 +62,7 @@ const BlogGenerator: React.FC = () => {
 	const [isLoadingBlog, setIsLoadingBlog] = useState(false)
 	const [workerJobId, setWorkerJobId] = useState("")
 	const [shouldDelayFetchDocument, setShouldDelayFetchDocument] = useState(false)
+	const [blogGenerationError, setBlogGenerationError] = useState("")
 
 	const [createDocumentResult, createDocument] = useMutation(CreateDocument);
 	const [fetchOrUpdateBlogResult, fetchOrUpdateBlog] = useMutation(FetchOrUpdateBlog);
@@ -89,13 +90,16 @@ const BlogGenerator: React.FC = () => {
 		fetchOrUpdateBlog({
 			workerJobId
 		}).then(res => {
-			if (res && res.data) {
+			if (res && res.data && !res.error) {
 				console.log('res', res.data)
 				setGeneratedBlogText(res.data.fetchOrUpdateBlog.generated_blog_text)
 				setIsLoadingBlog(false)
 			} else {
 				console.log("fetchOrUpdateBlog ress", res.error.message)
+				setBlogGenerationError("There was an error generating this blog post")
+				setGeneratedBlogText("Sorry, we had an issue and failed to generate the content :(")
 			}
+			setIsLoadingBlog(false)
 		})
 		},120000)
 
@@ -103,6 +107,7 @@ const BlogGenerator: React.FC = () => {
 
 	const generateBlog = () => {
 		setIsLoadingBlog(true)
+		setBlogGenerationError("")
 		createDocument({
 			title: blogTitleText,
 			exampleBlogText,
@@ -114,6 +119,7 @@ const BlogGenerator: React.FC = () => {
 				setShouldDelayFetchDocument(true)
 			} else {
 				console.log("createDocument ress", res.error.message)
+				setBlogGenerationError("There was an error generating this blog post")
 			}
 		})
 	}
@@ -161,7 +167,7 @@ const BlogGenerator: React.FC = () => {
 						value={generatedBlogText} 
 						style={{width: '45vw', height: '60vh'}}
 					/>
-					{documentResult.error && documentResult.error.message ? <div style={{color: "red"}}>There was an error generating this blog post</div> : ""}
+					{blogGenerationError !== "" ? <div style={{color: "red"}}>{blogGenerationError}</div> : ""}
         </div>
       </div>
       <div style={{display: 'flex', justifyContent: 'space-between'}}>

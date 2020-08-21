@@ -248,7 +248,7 @@ schema.mutationType({
 				const { worker_job_id } = _args
 				const {id, email} = getUserToken(ctx)
 				const document = await ctx.db.document.findOne({ where: { worker_job_id } });
-				if (document.generated_blog_text !== "Generating Blog Content please wait...") {
+				if (document.generated_blog_text !== waitingText) {
 					return document
 				} 
 
@@ -299,12 +299,19 @@ schema.mutationType({
 const waitingText = `
 Generating content please wait... also please keep the following in mind 
 
-1) It may take several attempts before you recieve generated content that resembles any quality 
+1) It may take several attempts before you recieve generated content that resembles any quality
 
 2) The quality of generated output is highly dependent on the example blog provided 
 
 3) This model can ouput things seen as 'toxic' please use your best judgment to refrain from using such material 
 
-4) please make sure to make it clear in your published copy that it was machine generated`
+4) Please make sure to make it clear in your published copy that it was machine generated
+
+5) The model often generates incorrect information, please fact check the generated copy
+
+6) It takes ~2 minutes to generate a blog post
+
+7) If you encounter any problems, please reach out to us at human@goodcontent.ai`
+
 
 use(prisma({ features: { crud: true } }));
