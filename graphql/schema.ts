@@ -38,7 +38,7 @@ schema.objectType({
 });
 
 type TokenData = {
-	id: string;
+	id: number;
 	email: string;
 };
 

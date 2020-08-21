@@ -1,20 +1,20 @@
 {
   "compilerOptions": {
     "allowJs": true,
-    "alwaysStrict": true,
+    "alwaysStrict": false,
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
+    "forceConsistentCasingInFileNames": false,
     "isolatedModules": true,
     "jsx": "preserve",
     "lib": ["dom", "es2017"],
     "module": "esnext",
     "moduleResolution": "node",
-    "noFallthroughCasesInSwitch": true,
+    "noFallthroughCasesInSwitch": false,
     "noUnusedLocals": false,
-    "noUnusedParameters": true,
+    "noUnusedParameters": false,
     "resolveJsonModule": true,
     "skipLibCheck": true,
-    "strict": true,
+    "strict": false,
     "target": "esnext",
     "noEmit": true,
     "rootDir": ".",
@@ -22,5 +22,5 @@
     "plugins": [{ "name": "nexus/typescript-language-service" }]
   },
   "exclude": ["node_modules"],
-  "include": ["**/*.ts", "**/*.tsx", ".", "types.d.ts"]
+  "include": []
 }

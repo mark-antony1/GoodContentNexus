@@ -16,11 +16,12 @@ const BlogLikeButtons: React.FC = () => {
 	const likeButtonStyles = like.selected || like.hovered ? {...unselectedDraftStyles, ...selectedDraftStyles} : {...unselectedDraftStyles}
 	const dislikeButtonStyles = dislike.selected || dislike.hovered ? {...unselectedDraftStyles, ...selectedDraftStyles} : {...unselectedDraftStyles}
 
-	const handleLikeButtonClick = (type) => {
+	const handleLikeButtonClick = (type: String) => {
 		const typeMap = { like: 'dislike', dislike: 'like'}
 		let newState = {...likeButtonsState}
-		newState[type].selected = true
-		newState[typeMap[type]].selected = false
+
+		newState[type.toString()].selected = true
+		newState[typeMap[type.toString()]].selected = false
 		setLikeButtonsState(newState)
 	}
 

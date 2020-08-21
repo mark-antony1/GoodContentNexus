@@ -15,7 +15,7 @@ const FormInputField = ({value, label, onChange}: Props) => {
 			<label>{label}</label>
 			<input 
 				value={value}
-				onChange={onChange}
+				onChange={(e) => onChange(e)}
 			/>
 	</div>
   );

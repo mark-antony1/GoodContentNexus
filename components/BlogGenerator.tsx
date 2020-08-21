@@ -140,7 +140,7 @@ const BlogGenerator: React.FC = () => {
         <div>
           <div>{getNumOfWords()}/900</div>
 					<Button style={{minWidth: '120px', minHeight: "39px"}} onClick={generateBlog} disableElevation variant="contained" color="primary">
-						{isLoadingBlog ? <CircularProgress color="white" size='26px'/> :"Generate"}
+						{isLoadingBlog ? <CircularProgress color="secondary" size='26px'/> :"Generate"}
 					</Button>
         </div>
 				<BlogLikeButtons/>
