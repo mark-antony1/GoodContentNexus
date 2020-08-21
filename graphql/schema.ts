@@ -98,7 +98,7 @@ schema.queryType({
 		});
   },
 });
-
+ 
 schema.mutationType({
   definition(t) {
 		t.field("signup", {
