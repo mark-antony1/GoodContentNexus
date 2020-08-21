@@ -8,9 +8,10 @@ General Graphql Route: `/api/graphql`
 
 Specific Graphql Route: `/api/graphql/updateDocument`
 
-Arugments:
-	document_id: intArg({ nullable: false }),
-	generated_blog_text: stringArg({ nullable: false })
+	Arugments: {
+		document_id: intArg({ nullable: false }),
+		generated_blog_text: stringArg({ nullable: false })
+	}
 
 	*Must include a token in attatched to request.header.authorization 
 		that is a JWT token signed by the ${ENV_LOCAL_JWT_SECRET} and which contains
