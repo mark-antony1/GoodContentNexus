@@ -1,6 +1,20 @@
-# TypeScript Next.js example
+# Goodcontent Next.js Prisma Nexus Graphql
 
-This is a really simple project that shows the usage of Next.js with TypeScript.
+## External API
+General Graphql Route: `/api/graphql`
+
+
+### Update Document Endpoint
+
+Specific Graphql Route: `/api/graphql/updateDocument`
+
+Arugments:
+	document_id: intArg({ nullable: false }),
+	generated_blog_text: stringArg({ nullable: false })
+
+	*Must include a token in attatched to request.header.authorization 
+		that is a JWT token signed by the ${ENV_LOCAL_JWT_SECRET} and which contains
+		a JSON object that is { message: ${JWT_SECRET_MESSAGE} }
 
 ## Deploy your own
 

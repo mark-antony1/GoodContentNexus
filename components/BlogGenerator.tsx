@@ -75,7 +75,6 @@ const BlogGenerator: React.FC = () => {
 	if(shouldDelayFetchDocument) {
 		setShouldDelayFetchDocument(false)
 		setTimeout(function(){
-			console.log("fetching again")
 			document()
 			setIsLoadingBlog(false)
 		},120000)
@@ -89,13 +88,8 @@ const BlogGenerator: React.FC = () => {
 			exampleBlogText,
 			exampleBlogTitleText
 		}).then(res => {
-			console.log('res', res.data.createDocument.worker_job_id)
 			setWorkerJobId(res.data.createDocument.worker_job_id)
 			setShouldDelayFetchDocument(true)
-			// setTimeout(() => {
-			// 	setGeneratedBlogText(generatedBlogTextFinal)
-			// 	setIsLoadingBlog(false)
-			// }, 1500)
 		})
 	}
 
@@ -105,8 +99,6 @@ const BlogGenerator: React.FC = () => {
 		const len3 = exampleBlogText.split(' ').length
 		return len1 + len2 + len3 -3
 	}
-	console.log("documentResult4", documentResult)
-
 
   return (
 		<div style={{padding: '0 5vw 0 5vw'}}>
@@ -138,7 +130,7 @@ const BlogGenerator: React.FC = () => {
 					<TitleWithTooltip titleText='Blog Output' tooltipText='this is the generated text for the blog you are creating'/>
 					<textarea 
 						disabled
-						value={generatedBlogText} 
+						value={documentResult && documentResult.data && documentResult.data.document && documentResult.data.document.generated_blog_text} 
 						onChange={(e) => setGeneratedBlogText(e.target.value)} 
 						style={{width: '45vw', height: '60vh'}}
 					/>

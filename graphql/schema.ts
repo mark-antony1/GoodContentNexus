@@ -1,6 +1,6 @@
 import { schema, use } from "nexus";
 import { prisma } from "nexus-plugin-prisma";
-import { stringArg } from '@nexus/schema'
+import { stringArg, intArg } from '@nexus/schema'
 import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 import cookie from "cookie"
@@ -43,7 +43,6 @@ type TokenData = {
 };
 
 function getUserToken(ctx): TokenData {
-	// console.log("req.headers", ctx.req.headers)
 	const { token } = cookie.parse(ctx.req.headers.cookie ?? "");
 
 	if (token) {
@@ -51,6 +50,19 @@ function getUserToken(ctx): TokenData {
 			return { id, email }
 		} else {
 		throw Error("does not have token")
+	}
+}
+
+function validateServiceToken(ctx) {
+	const token = ctx.req.headers.authorization;
+
+	if (token) {
+			const { message } = jwt.verify(token, process.env.ENV_LOCAL_JWT_SECRET);
+			if (message != process.env.ENV_LOCAL_JWT_MESSAGE) {
+				throw Error("invalid token message")
+			}
+		} else {
+		throw Error("no token provided")
 	}
 }
 
@@ -81,7 +93,6 @@ schema.queryType({
       async resolve(_parent, _args, ctx) {
 				const { worker_job_id } = _args
 				const {id, email} = getUserToken(ctx)
-				console.log("get doc get doc", worker_job_id)
 				return await ctx.db.document.findOne({ where: { worker_job_id } });
 			},
 		});
@@ -122,6 +133,15 @@ schema.mutationType({
 						expiresIn: "6h",
 					}
 				);
+
+				const token2 = jwt.sign(
+					{ message: process.env.ENV_LOCAL_JWT_MESSAGE },
+					process.env.ENV_LOCAL_JWT_SECRET,
+					{
+						expiresIn: "6h",
+					}
+				);
+				console.log("token2", token2)
 
 				ctx.res.setHeader(
 					"Set-Cookie",
@@ -215,6 +235,26 @@ schema.mutationType({
 						},
 						worker_job_id: job_id,
 						generated_blog_text: ""
+					},
+				});
+    	}
+		})
+		t.field("updateDocument", {
+			type: "document",
+			args: {
+				document_id: intArg({ nullable: false }),
+				generated_blog_text: stringArg({ nullable: false }),
+			},
+			async resolve(_parent, _args, ctx) {
+				const { generated_blog_text, document_id } = _args
+				validateServiceToken(ctx)
+
+				return ctx.db.document.update({
+					where : {
+						id: document_id
+					},
+					data: {
+						generated_blog_text: generated_blog_text
 					},
 				});
     	}
