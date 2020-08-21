@@ -1,4 +1,4 @@
-import React, { useState, useEffect} from "react";
+import React, { useState} from "react";
 import TitleWithTooltip from './TitleWithTooltip'
 import Button from '@material-ui/core/Button';
 import BlogLikeButtons from './BlogLikeButtons'
