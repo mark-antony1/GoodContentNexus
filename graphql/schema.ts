@@ -4,6 +4,7 @@ import { stringArg } from '@nexus/schema'
 import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 import cookie from "cookie"
+import axios from "axios"
 
 function validatePassword(user, password) {
   return bcrypt.compareSync(password, user.password);
@@ -22,6 +23,36 @@ schema.objectType({
   },
 });
 
+schema.objectType({
+  name: "document",
+  definition(t) {
+    t.model.id();
+		t.model.generated_blog_text();
+		t.model.title();
+		t.model.example_blog_text();
+		t.model.example_title();
+		t.model.worker_job_id();
+		t.model.created_at();
+		t.model.updated_at();
+  },
+});
+
+type TokenData = {
+	id: string;
+	email: string;
+};
+
+function getUserToken(ctx): TokenData {
+	// console.log("req.headers", ctx.req.headers)
+	const { token } = cookie.parse(ctx.req.headers.cookie ?? "");
+
+	if (token) {
+			const { id, email } = jwt.verify(token, process.env.ENV_LOCAL_JWT_SECRET);
+			return { id, email }
+		} else {
+		throw Error("does not have token")
+	}
+}
 
 schema.queryType({
   definition(t) {
@@ -37,29 +68,28 @@ schema.queryType({
 				token: stringArg({ nullable: false }),
 			},
       async resolve(_parent, _args, ctx) {
-				const { token } = cookie.parse(ctx.req.headers.cookie ?? "");
 
-				if (token) {
-						const { id, email } = jwt.verify(token, process.env.ENV_LOCAL_JWT_SECRET);
-						return await ctx.db.user.findOne({ where: { id } });
-				} else {
-					throw Error("does not have token")
-				}
+				const {id, email} = getUserToken(ctx)
+				return await ctx.db.user.findOne({ where: { id } });
 			},
 		});
-		t.crud.users();
+		t.field("document", {
+			type: "document",
+			args: { 
+				worker_job_id: stringArg({ nullable: false }),
+			},
+      async resolve(_parent, _args, ctx) {
+				const { worker_job_id } = _args
+				const {id, email} = getUserToken(ctx)
+				console.log("get doc get doc", worker_job_id)
+				return await ctx.db.document.findOne({ where: { worker_job_id } });
+			},
+		});
   },
 });
 
 schema.mutationType({
   definition(t) {
-    t.field("bigRedButton", {
-      type: "String",
-      async resolve(_parent, _args, ctx) {
-        const { count } = await ctx.db.user.deleteMany({});
-        return `${count} user(s) destroyed. Thanos will be proud.`;
-      },
-		});
 		t.field("signup", {
 			type: "user",
 			args: {
@@ -71,8 +101,6 @@ schema.mutationType({
 			},
 			async resolve(_parent, _args, ctx) {
 				const { first_name, last_name, password, email, inviteCode } = _args
-
-
 
 				if (inviteCode !== process.env.ENV_LOCAL_INVITE_SECRET) {
 					throw Error("Invalid invite code")
@@ -149,10 +177,48 @@ schema.mutationType({
 				throw new Error("Invalid email and password combination");
     	}
 		})
-    t.crud.deleteOneuser();
-    t.crud.deleteManyuser();
-    t.crud.updateOneuser();
-    t.crud.updateManyuser();
+		t.field("createDocument", {
+			type: "document",
+			args: {
+				title: stringArg({ nullable: false }),
+				example_blog_text: stringArg({ nullable: false }),
+				example_title: stringArg({ nullable: false }),
+			},
+			async resolve(_parent, _args, ctx) {
+				const { title, example_blog_text, example_title } = _args
+				const {id, email} = getUserToken(ctx)
+				const token = jwt.sign(
+					{ message: process.env.ENV_LOCAL_JWT_MESSAGE },
+					process.env.ENV_LOCAL_JWT_SECRET,
+					{
+						expiresIn: "1h",
+					}
+				);
+
+				axios.defaults.headers.common['Authorization'] = token;
+				const res = await axios.post(process.env.ENV_LOCAL_PYTHON_URL, {
+					title,
+					example_title,
+					example_blog_text
+				})
+
+				const job_id = res.data.job_id
+				return ctx.db.document.create({
+					data: {
+						title: title,
+						example_blog_text: example_blog_text,
+						example_title: example_title,
+						user: {
+							connect: {
+								 id
+							}
+						},
+						worker_job_id: job_id,
+						generated_blog_text: ""
+					},
+				});
+    	}
+		})
   },
 });
 

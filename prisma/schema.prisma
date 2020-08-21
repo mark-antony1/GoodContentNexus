@@ -12,20 +12,21 @@ model document {
   created_at          DateTime @default(now())
   updated_at          DateTime @default(now())
   generated_blog_text String
-  sample_blog_text    String
+  example_blog_text   String
   title               String
-  user_id             Int      @unique
-  worker_job_id       Int      @unique
+  user_id             Int
+  example_title       String?
+  worker_job_id       String   @unique
   user                user     @relation(fields: [user_id], references: [id])
 }
 
 model user {
-  id         Int       @default(autoincrement()) @id
-  created_at DateTime  @default(now())
-  updated_at DateTime  @default(now())
+  id         Int        @default(autoincrement()) @id
+  created_at DateTime   @default(now())
+  updated_at DateTime   @default(now())
   first_name String
   last_name  String
-  email      String    @unique
+  email      String     @unique
   password   String
-  document   document?
+  document   document[]
 }

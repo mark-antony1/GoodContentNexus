@@ -5,7 +5,8 @@ import BlogLikeButtons from './BlogLikeButtons'
 import CircularProgress from '@material-ui/core/CircularProgress';
 import gql from "graphql-tag";
 import { useRouter } from 'next/router'
-import { useQuery } from "urql";
+import { useQuery, useMutation } from "urql";
+
 
 const UserQuery = gql`
   query($token: String!) {
@@ -15,6 +16,24 @@ const UserQuery = gql`
     }
   }
 `;
+
+const CreateDocument = gql`
+	mutation($title: String!, $exampleBlogText: String!, $exampleBlogTitleText: String!) {
+		createDocument(title: $title, example_blog_text: $exampleBlogText, example_title: $exampleBlogTitleText) {
+			id
+			worker_job_id
+    }
+	}`
+;
+
+const Document = gql`
+	query($workerJobId: String!) {
+		document(worker_job_id: $workerJobId) {
+			id
+			generated_blog_text
+    }
+	}`
+;
 
 
 type UserQueryData = {
@@ -26,6 +45,16 @@ type UserQueryData = {
 
 
 const BlogGenerator: React.FC = () => {
+	const [blogTitleText, setBlogTitleText] = useState("")
+	const [exampleBlogTitleText, setExampleBlogTitleText] = useState("")
+	const [exampleBlogText, setExampleBlogText] = useState("")
+	const [generatedBlogText, setGeneratedBlogText] = useState("")
+	const [isLoadingBlog, setIsLoadingBlog] = useState(false)
+	const [workerJobId, setWorkerJobId] = useState("")
+	const [shouldDelayFetchDocument, setShouldDelayFetchDocument] = useState(false)
+
+	const [createDocumentResult, createDocument] = useMutation(CreateDocument);
+
 	if (typeof window !== 'undefined') {
 		const router = useRouter()
 		const [userQueryResult] = useQuery({
@@ -37,21 +66,37 @@ const BlogGenerator: React.FC = () => {
 		}
 	}
 
+	const [documentResult, document] = useQuery({
+		query: Document,
+		variables: { workerJobId },
+		pause: workerJobId === ""
+	});
 
+	if(shouldDelayFetchDocument) {
+		setShouldDelayFetchDocument(false)
+		setTimeout(function(){
+			console.log("fetching again")
+			document()
+			setIsLoadingBlog(false)
+		},120000)
 
-	const [blogTitleText, setBlogTitleText] = useState("")
-	const [exampleBlogTitleText, setExampleBlogTitleText] = useState("")
-	const [exampleBlogText, setExampleBlogText] = useState("")
-	const [generatedBlogText, setGeneratedBlogText] = useState("")
-	const [isLoadingBlog, setIsLoadingBlog] = useState(false)
-	
+	}
 
 	const generateBlog = () => {
 		setIsLoadingBlog(true)
-		setTimeout(() => {
-			setGeneratedBlogText(generatedBlogTextFinal)
-			setIsLoadingBlog(false)
-		}, 500)
+		createDocument({
+			title: blogTitleText,
+			exampleBlogText,
+			exampleBlogTitleText
+		}).then(res => {
+			console.log('res', res.data.createDocument.worker_job_id)
+			setWorkerJobId(res.data.createDocument.worker_job_id)
+			setShouldDelayFetchDocument(true)
+			// setTimeout(() => {
+			// 	setGeneratedBlogText(generatedBlogTextFinal)
+			// 	setIsLoadingBlog(false)
+			// }, 1500)
+		})
 	}
 
 	const getNumOfWords = () => {
@@ -60,6 +105,8 @@ const BlogGenerator: React.FC = () => {
 		const len3 = exampleBlogText.split(' ').length
 		return len1 + len2 + len3 -3
 	}
+	console.log("documentResult4", documentResult)
+
 
   return (
 		<div style={{padding: '0 5vw 0 5vw'}}>
