@@ -141,7 +141,6 @@ schema.mutationType({
 						expiresIn: "6h",
 					}
 				);
-				console.log("token2", token2)
 
 				ctx.res.setHeader(
 					"Set-Cookie",
@@ -219,7 +218,7 @@ schema.mutationType({
 				const res = await axios.post(process.env.ENV_LOCAL_PYTHON_URL, {
 					title,
 					example_title,
-					example_blog_text
+					example_blog: example_blog_text
 				})
 
 				const job_id = res.data.job_id

@@ -91,11 +91,9 @@ const BlogGenerator: React.FC = () => {
 			workerJobId
 		}).then(res => {
 			if (res && res.data && !res.error) {
-				console.log('res', res.data)
 				setGeneratedBlogText(res.data.fetchOrUpdateBlog.generated_blog_text)
 				setIsLoadingBlog(false)
 			} else {
-				console.log("fetchOrUpdateBlog ress", res.error.message)
 				setBlogGenerationError("There was an error generating this blog post")
 				setGeneratedBlogText("Sorry, we had an issue and failed to generate the content :(")
 			}
@@ -118,7 +116,6 @@ const BlogGenerator: React.FC = () => {
 				setGeneratedBlogText(res.data.createDocument.generated_blog_text)
 				setShouldDelayFetchDocument(true)
 			} else {
-				console.log("createDocument ress", res.error.message)
 				setBlogGenerationError("There was an error generating this blog post")
 			}
 		})
@@ -131,9 +128,6 @@ const BlogGenerator: React.FC = () => {
 		return len1 + len2 + len3 -3
 	}
 
-	if (documentResult.error && documentResult.error.message) {
-		console.log('documentResult.error.message', documentResult.error.message)
-	}
   return (
 		<div style={{padding: '0 5vw 0 5vw'}}>
       <div style={{display: 'flex', justifyContent: 'space-between'}}>
