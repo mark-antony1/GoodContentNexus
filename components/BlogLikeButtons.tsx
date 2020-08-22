@@ -38,7 +38,7 @@ const BlogLikeButtons: React.FC = () => {
 	}
 
   return (
-		<div style={{display: 'flex', alignItems: 'center'}}>
+		<div style={{display: 'flex', alignItems: 'center', justifyContent: 'flex-end'}}>
 			<div>Will you use this draft?</div>
 			<Button 
 				onClick={() => handleLikeButtonClick('like')}
