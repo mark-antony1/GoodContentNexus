@@ -6,6 +6,7 @@ import FormInputField from '../components/FormInputField'
 import { useMutation } from "urql";
 import gql from "graphql-tag";
 import { useRouter } from 'next/router'
+import CircularProgress from '@material-ui/core/CircularProgress';
 
 const Login = gql`
   mutation ($email: String!, $password: String!)  {
@@ -49,7 +50,7 @@ const LoginPage = () => {
 					setErrorText("An error has occured please try again later")
 				} 
 			} else {
-				router.push('/')
+				window.location.href = window.location.origin
 			}
 		})
 	}
@@ -67,7 +68,7 @@ const LoginPage = () => {
 					<FormInputField label={'Password*'} value={formFields.password} 
 						onChange={(e) => updateFormFields(e.target.value, 'password')}/>
 					<Button style={{minWidth: '120px', minHeight: "39px"}} onClick={handleSubmit} disableElevation variant="contained" color="primary">
-						Log In
+						{loginResult.fetching ? <CircularProgress color="inherit" size='26px'/> : "Log In"}
 					</Button>
 					<p style={{color: 'red', fontWeight: 'bold'}}>{errorText}</p>
 				</div>

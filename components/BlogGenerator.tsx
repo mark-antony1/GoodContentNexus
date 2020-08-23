@@ -1,22 +1,9 @@
 import React, { useState} from "react";
 import TitleWithTooltip from './TitleWithTooltip'
-import Button from '@material-ui/core/Button';
 import BlogLikeButtons from './BlogLikeButtons'
 import BlogGeneratorForm from './BlogGeneratorForm'
-import CircularProgress from '@material-ui/core/CircularProgress';
 import gql from "graphql-tag";
-import { useRouter } from 'next/router'
 import { useQuery, useMutation } from "urql";
-
-
-const UserQuery = gql`
-  query($token: String!) {
-    user(token: $token) {
-      id
-      first_name
-    }
-  }
-`;
 
 const CreateDocument = gql`
 	mutation($title: String!, $exampleBlogText: String!, $exampleBlogTitleText: String!) {
@@ -48,15 +35,6 @@ const FetchOrUpdateBlog = gql`
 
 const maxRetries = 13
 
-
-type UserQueryData = {
-  user: {
-    id: string;
-    first_name: string;
-  };
-};
-
-
 const BlogGenerator: React.FC = () => {
 	const [generatedBlogText, setGeneratedBlogText] = useState("")
 	const [isLoadingBlog, setIsLoadingBlog] = useState(false)
@@ -68,17 +46,6 @@ const BlogGenerator: React.FC = () => {
 
 	const [createDocumentResult, createDocument] = useMutation(CreateDocument);
 	const [fetchOrUpdateBlogResult, fetchOrUpdateBlog] = useMutation(FetchOrUpdateBlog);
-
-	if (typeof window !== 'undefined') {
-		const router = useRouter()
-		const [userQueryResult] = useQuery({
-			query: UserQuery,
-			variables: {token: "localStorage.getItem('token')"}
-		})
-		if(userQueryResult.error !== undefined) {
-			router.push('/login')
-		}
-	}
 
 	const [documentResult, document] = useQuery({
 		query: Document,

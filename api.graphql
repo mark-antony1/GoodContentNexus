@@ -36,7 +36,7 @@ type Mutation {
 type Query {
   allUsers: [user!]
   document(worker_job_id: String!): document
-  user(token: String!): user
+  user: user
 }
 
 type user {

@@ -1,7 +1,6 @@
 import React, { useState} from "react";
 import TitleWithTooltip from './TitleWithTooltip'
 import Button from '@material-ui/core/Button';
-import BlogLikeButtons from './BlogLikeButtons'
 import CircularProgress from '@material-ui/core/CircularProgress';
 
 type Props = {

@@ -76,11 +76,8 @@ schema.queryType({
 		});
 		t.field("user", {
 			type: "user",
-			args: { 
-				token: stringArg({ nullable: false }),
-			},
+			args: {},
       async resolve(_parent, _args, ctx) {
-
 				const {id, email} = getUserToken(ctx)
 				return await ctx.db.user.findOne({ where: { id } });
 			},
