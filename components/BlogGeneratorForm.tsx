@@ -50,9 +50,9 @@ const BlogGeneratorForm = ({generateBlog, isLoadingBlog}: Props) => {
 				<Button 
 					style={{minWidth: '120px', minHeight: "39px"}} 
 					onClick={() => generateBlog(
-						blogTitleText,
 						exampleBlogText,
-						exampleBlogTitleText
+						exampleBlogTitleText,
+						blogTitleText
 					)} 
 					disableElevation variant="contained" color="primary"
 				>

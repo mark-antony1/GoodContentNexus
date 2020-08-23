@@ -46,6 +46,8 @@ const FetchOrUpdateBlog = gql`
 	}`
 ;
 
+const maxRetries = 13
+
 
 type UserQueryData = {
   user: {
@@ -56,14 +58,13 @@ type UserQueryData = {
 
 
 const BlogGenerator: React.FC = () => {
-	const [blogTitleText, setBlogTitleText] = useState("")
-	const [exampleBlogTitleText, setExampleBlogTitleText] = useState("")
-	const [exampleBlogText, setExampleBlogText] = useState("")
 	const [generatedBlogText, setGeneratedBlogText] = useState("")
 	const [isLoadingBlog, setIsLoadingBlog] = useState(false)
 	const [workerJobId, setWorkerJobId] = useState("")
-	const [shouldDelayFetchDocument, setShouldDelayFetchDocument] = useState(false)
+	const [shouldFetchDocument, setShouldFetchDocument] = useState(false)
 	const [blogGenerationError, setBlogGenerationError] = useState("")
+	const [retryAttempts, setRetryAttempts] = useState(0)
+
 
 	const [createDocumentResult, createDocument] = useMutation(CreateDocument);
 	const [fetchOrUpdateBlogResult, fetchOrUpdateBlog] = useMutation(FetchOrUpdateBlog);
@@ -85,23 +86,23 @@ const BlogGenerator: React.FC = () => {
 		pause: workerJobId === ""
 	});
 
-	if(shouldDelayFetchDocument) {
-		setShouldDelayFetchDocument(false)
-		setTimeout(function(){
-			fetchOrUpdateBlog({
-				workerJobId
-			}).then(res => {
-				if (res && res.data && !res.error) {
-					setGeneratedBlogText(res.data.fetchOrUpdateBlog.generated_blog_text)
-					setIsLoadingBlog(false)
-				} else {
-					setBlogGenerationError("There was an error generating this blog post")
-					setGeneratedBlogText("Sorry, we had an issue and failed to generate the content :(")
-				}
+	if(shouldFetchDocument && retryAttempts < maxRetries) {
+		setShouldFetchDocument(false)
+		setRetryAttempts(retryAttempts + 1)
+		fetchOrUpdateBlog({
+			workerJobId
+		}).then(res => {
+			if (res && res.data && !res.error) {
+				setGeneratedBlogText(res.data.fetchOrUpdateBlog.generated_blog_text)
 				setIsLoadingBlog(false)
-			})
-		},120000)
-
+			} else if (retryAttempts < maxRetries) {
+				setTimeout(() => setShouldFetchDocument(true), 10000)
+			} else {
+				setBlogGenerationError("There was an error generating this blog post")
+				setGeneratedBlogText("Sorry, we had an issue and failed to generate the content :(")
+				setIsLoadingBlog(false)
+			}
+		})
 	}
 
 	const generateBlog = (exampleBlogText: String, exampleBlogTitleText: String, blogTitleText: String) => {
@@ -114,19 +115,14 @@ const BlogGenerator: React.FC = () => {
 		}).then(res => {
 			if (res && res.data) {
 				setWorkerJobId(res.data.createDocument.worker_job_id)
-				setGeneratedBlogText(res.data.createDocument.generated_blog_text)
-				setShouldDelayFetchDocument(true)
+				setGeneratedBlogText(waitingText)
+				setRetryAttempts(0)
+				setShouldFetchDocument(true)
 			} else {
 				setBlogGenerationError("There was an error generating this blog post")
+				setGeneratedBlogText("Sorry, we had an issue and failed to generate the content :(")
 			}
 		})
-	}
-
-	const getNumOfWords = () => {
-		const len1 = exampleBlogTitleText.split(' ').length
-		const len2 = blogTitleText.split(' ').length
-		const len3 = exampleBlogText.split(' ').length
-		return len1 + len2 + len3 -3
 	}
 
   return (
@@ -147,5 +143,22 @@ const BlogGenerator: React.FC = () => {
     </div>
   );
 };
+
+const waitingText = `
+Generating content please wait... also please keep the following in mind 
+
+1) It may take several attempts before you recieve generated content that resembles any quality
+
+2) The quality of generated output is highly dependent on the example blog provided 
+
+3) This model can ouput things seen as 'toxic' please use your best judgment to refrain from using such material 
+
+4) Please make sure to make it clear in your published copy that it was machine generated
+
+5) The model often generates incorrect information, please fact check the generated copy
+
+6) Longer pieces can take up to ~2 minutes to generate a blog post
+
+7) If you encounter any problems, please reach out to us at human@goodcontent.ai`
 
 export default BlogGenerator;

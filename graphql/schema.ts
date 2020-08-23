@@ -233,7 +233,7 @@ schema.mutationType({
 							}
 						},
 						worker_job_id: job_id,
-						generated_blog_text: waitingText
+						generated_blog_text: ""
 					},
 				});
     	}
@@ -247,7 +247,7 @@ schema.mutationType({
 				const { worker_job_id } = _args
 				const {id, email} = getUserToken(ctx)
 				const document = await ctx.db.document.findOne({ where: { worker_job_id } });
-				if (document.generated_blog_text !== waitingText) {
+				if (document.generated_blog_text !== "") {
 					return document
 				} 
 
@@ -308,7 +308,7 @@ Generating content please wait... also please keep the following in mind
 
 5) The model often generates incorrect information, please fact check the generated copy
 
-6) It takes ~2 minutes to generate a blog post
+6) Longer pieces can take up to ~2 minutes to generate a blog post
 
 7) If you encounter any problems, please reach out to us at human@goodcontent.ai`
 
