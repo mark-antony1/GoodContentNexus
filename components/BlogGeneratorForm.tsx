@@ -37,7 +37,7 @@ const BlogGeneratorForm = ({generateBlog, isLoadingBlog}: Props) => {
 			<div>Blog Example Text</div>
 			<div className='pro-tip' style={{background: "#9ED1A9", borderRadius: '3px', width: "35vw"}}>
 				<b style={{fontWeight: 'bold', color: 'blue'}}>PRO TIP</b>
-				: For best results, include raw text only. Clean up alt text from pasted images, those huge blocks of whitespace, and any weird residual text from links. Leave the title out.
+				: For best results, include raw text only. Remove alt text from pasted images, blocks of whitespace and extra spaces, and any text from links. Leave the title out.
 			</div>
 			<textarea 
 				value={exampleBlogText} 

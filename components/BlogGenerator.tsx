@@ -2,6 +2,7 @@ import React, { useState} from "react";
 import TitleWithTooltip from './TitleWithTooltip'
 import BlogLikeButtons from './BlogLikeButtons'
 import BlogGeneratorForm from './BlogGeneratorForm'
+import { useRouter } from 'next/router'
 import gql from "graphql-tag";
 import { useQuery, useMutation } from "urql";
 
@@ -33,9 +34,10 @@ const FetchOrUpdateBlog = gql`
 	}`
 ;
 
-const maxRetries = 13
+const maxRetries = 18
 
 const BlogGenerator: React.FC = () => {
+	const router = useRouter()
 	const [generatedBlogText, setGeneratedBlogText] = useState("")
 	const [isLoadingBlog, setIsLoadingBlog] = useState(false)
 	const [workerJobId, setWorkerJobId] = useState("")
@@ -55,15 +57,24 @@ const BlogGenerator: React.FC = () => {
 
 	if(shouldFetchDocument && retryAttempts < maxRetries) {
 		setShouldFetchDocument(false)
-		setRetryAttempts(retryAttempts + 1)
+		const newRetryAttempts = retryAttempts + 1
+		setRetryAttempts(newRetryAttempts)
 		fetchOrUpdateBlog({
 			workerJobId
 		}).then(res => {
-			if (res && res.data && !res.error) {
+			const { data, error } = res
+			if (data && !error) {
 				setGeneratedBlogText(res.data.fetchOrUpdateBlog.generated_blog_text)
 				setIsLoadingBlog(false)
-			} else if (retryAttempts < maxRetries) {
+			} else if (newRetryAttempts < maxRetries) {
+				if(error.message.includes("reach database server")) {
+					setBlogGenerationError("Your internet connection is unstable")
+				}
 				setTimeout(() => setShouldFetchDocument(true), 10000)
+			} else if (newRetryAttempts >= maxRetries) {
+				setBlogGenerationError("The blog post took too long to generate, please try again or improve your internet connection")
+				setGeneratedBlogText("Sorry, we had an issue and failed to generate the content :(")
+				setIsLoadingBlog(false)
 			} else {
 				setBlogGenerationError("There was an error generating this blog post")
 				setGeneratedBlogText("Sorry, we had an issue and failed to generate the content :(")
@@ -80,11 +91,15 @@ const BlogGenerator: React.FC = () => {
 			exampleBlogText,
 			exampleBlogTitleText
 		}).then(res => {
-			if (res && res.data) {
+			if (res && res.data && !res.error) {
 				setWorkerJobId(res.data.createDocument.worker_job_id)
 				setGeneratedBlogText(waitingText)
 				setRetryAttempts(0)
 				setShouldFetchDocument(true)
+			} else if (res.error.message.includes("does not have token")) {
+				setBlogGenerationError("You are not Signed In, redirecting you to login page")
+				setIsLoadingBlog(false)
+				setTimeout(() => router.push('/login'), 2000)
 			} else {
 				setBlogGenerationError("There was an error generating this blog post")
 				setGeneratedBlogText("Sorry, we had an issue and failed to generate the content :(")
@@ -103,7 +118,7 @@ const BlogGenerator: React.FC = () => {
 						value={generatedBlogText} 
 						style={{width: '45vw', height: '60vh'}}
 					/>
-					{blogGenerationError !== "" ? <div style={{color: "red", marginBottom: "8vh", height: "2vh" }}>{blogGenerationError}</div> : <div style={{marginBottom: "8vh", height: "2vh"}}></div>}
+					{blogGenerationError !== "" ? <div style={{ width: '45vw', color: "red", marginBottom: "8vh", height: "2vh" }}>{blogGenerationError}</div> : <div style={{marginBottom: "8vh", height: "2vh"}}></div>}
 					<BlogLikeButtons/>
         </div>
       </div>
@@ -120,11 +135,11 @@ Generating content please wait... also please keep the following in mind
 
 3) This model can ouput things seen as 'toxic' please use your best judgment to refrain from using such material 
 
-4) Please make sure to make it clear in your published copy that it was machine generated
+4) The model often generates incorrect information, please fact check the generated copy
 
-5) The model often generates incorrect information, please fact check the generated copy
+5) Longer pieces can take up to ~3 minutes to generate a blog post
 
-6) Longer pieces can take up to ~2 minutes to generate a blog post
+6) If you post any raw output, please make it clear in the published copy that the output was machine generated
 
 7) If you encounter any problems, please reach out to us at human@goodcontent.ai`
 
