@@ -98,11 +98,12 @@ const BlogGenerator: React.FC = () => {
 				setShouldFetchDocument(true)
 			} else if (res.error.message.includes("does not have token")) {
 				setBlogGenerationError("You are not Signed In, redirecting you to login page")
-				setIsLoadingBlog(false)
 				setTimeout(() => router.push('/login'), 2000)
+				setIsLoadingBlog(false)
 			} else {
 				setBlogGenerationError("There was an error generating this blog post")
 				setGeneratedBlogText("Sorry, we had an issue and failed to generate the content :(")
+				setIsLoadingBlog(false)
 			}
 		})
 		.catch(err => {
