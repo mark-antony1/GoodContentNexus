@@ -86,6 +86,7 @@ const BlogGenerator: React.FC = () => {
 	const generateBlog = (exampleBlogText: String, exampleBlogTitleText: String, blogTitleText: String) => {
 		setIsLoadingBlog(true)
 		setBlogGenerationError("")
+		setGeneratedBlogText(waitingText)
 		createDocument({
 			title: blogTitleText,
 			exampleBlogText,
@@ -93,7 +94,6 @@ const BlogGenerator: React.FC = () => {
 		}).then(res => {
 			if (res && res.data && !res.error) {
 				setWorkerJobId(res.data.createDocument.worker_job_id)
-				setGeneratedBlogText(waitingText)
 				setRetryAttempts(0)
 				setShouldFetchDocument(true)
 			} else if (res.error.message.includes("does not have token")) {
@@ -104,6 +104,9 @@ const BlogGenerator: React.FC = () => {
 				setBlogGenerationError("There was an error generating this blog post")
 				setGeneratedBlogText("Sorry, we had an issue and failed to generate the content :(")
 			}
+		})
+		.catch(err => {
+			console.log("err on client", err)
 		})
 	}
 

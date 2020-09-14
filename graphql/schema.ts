@@ -6,6 +6,59 @@ import bcrypt from "bcrypt"
 import cookie from "cookie"
 import axios from "axios"
 
+function uuidv4() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+async function fetchResponseFromOpenAI(exampleBlog, exampleTitle, title) {
+  const url = "https://api.openai.com/v1/engines/davinci/completions";
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${process.env.OPENAI_SECRET}`,
+  };
+
+  const prompt = "The following are blog posts.\nBLOG 1\n~~~\n" + exampleTitle + "\n\n" + exampleBlog + "\n~~~\nBLOG 2\n~~~\n" + title
+
+  //   if (!prompt) return res.json({ error: "No prompt provided." });
+
+  const body = {
+    prompt: prompt,
+    max_tokens: 1000,
+    temperature: 0.8,
+		frequency_penalty: .3,
+		presence_penalty:.1,
+    // top_p: 1,
+    // n: 1,
+    // stream: false,
+    // logprobs: null,
+    // stop: "\n",
+  };
+  const response = await fetch(url, {
+    method: "POST",
+    body: JSON.stringify(body),
+    headers,
+  });
+  const json: {
+    id: string;
+    object: string;
+    created: number;
+    model: string;
+    choices: {
+      text: string;
+      index: number;
+      logprobs: null;
+      finish_reason: string;
+    }[];
+  } = await response.json();
+  console.log(json.choices, json);
+  return json;
+
+}
+
+
 function validatePassword(user, password) {
   return bcrypt.compareSync(password, user.password);
 }
@@ -211,14 +264,15 @@ schema.mutationType({
 					}
 				);
 
-				axios.defaults.headers.common['Authorization'] = token;
-				const res = await axios.post(process.env.ENV_LOCAL_PYTHON_URL, {
-					title,
-					example_title,
-					example_blog: example_blog_text
-				})
-
-				const job_id = res.data.job_id
+				// axios.defaults.headers.common['Authorization'] = token;
+				// const res = await axios.post(process.env.ENV_LOCAL_PYTHON_URL, {
+				// 	title,
+				// 	example_title,
+				// 	example_blog: example_blog_text
+				// })
+				const res = await fetchResponseFromOpenAI(example_blog_text, example_title, title)
+				console.log("Herer creating ...:user iD", id)
+				// const job_id = res.data.job_id
 				return ctx.db.document.create({
 					data: {
 						title: title,
@@ -229,8 +283,8 @@ schema.mutationType({
 								 id
 							}
 						},
-						worker_job_id: job_id,
-						generated_blog_text: ""
+						worker_job_id: uuidv4(),
+						generated_blog_text: res.choices[0].text
 					},
 				});
     	}
@@ -248,6 +302,7 @@ schema.mutationType({
 					return document
 				} 
 
+				console.log("heererere")
 				const token = jwt.sign(
 					{ message: process.env.ENV_LOCAL_JWT_MESSAGE },
 					process.env.ENV_LOCAL_JWT_SECRET,
@@ -255,6 +310,7 @@ schema.mutationType({
 						expiresIn: "1h",
 					}
 				);
+				console.log("heererere22")
 
 				axios.defaults.headers.common['Authorization'] = token;
 				try {
@@ -264,7 +320,9 @@ schema.mutationType({
 						data:  { generated_blog_text: generatedText },
 						where: { worker_job_id }
 					});
+					// const response = await fetchResponseFromOpenAI()
 				} catch (err) {
+					console.log("heererere33", err)
 					throw Error(err)
 				}
 			},
@@ -291,23 +349,5 @@ schema.mutationType({
 		})
   },
 });
-
-const waitingText = `
-Generating content please wait... also please keep the following in mind 
-
-1) It may take several attempts before you recieve generated content that resembles any quality
-
-2) The quality of generated output is highly dependent on the example blog provided 
-
-3) This model can ouput things seen as 'toxic' please use your best judgment to refrain from using such material 
-
-4) Please make sure to make it clear in your published copy that it was machine generated
-
-5) The model often generates incorrect information, please fact check the generated copy
-
-6) Longer pieces can take up to ~2 minutes to generate a blog post
-
-7) If you encounter any problems, please reach out to us at human@goodcontent.ai`
-
 
 use(prisma({ features: { crud: true } }));
